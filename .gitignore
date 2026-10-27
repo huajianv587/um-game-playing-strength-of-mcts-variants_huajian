@@ -1,4 +1,17 @@
 .DS_Store
+.ipynb_checkpoints/
+*.pth
+*.ckpt
+*.pt
+*.safetensors
+*.onnx
+*.npy
+*.npz
+*.model
+*.log
+outputs/
+working/
+kaggle_working/
 *.env
 *.pem
 *.key

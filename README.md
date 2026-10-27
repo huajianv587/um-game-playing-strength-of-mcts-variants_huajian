@@ -1,12 +1,12 @@
-# 🏆 UM - Game-Playing Strength of MCTS Variants — Bronze Medal, Rank 119/1,608
+# 🏆 UM - Game-Playing Strength of MCTS Variants
 
 <p align="center">
-  <a href="https://img.shields.io/badge/Kaggle-Competition-20BEFF?logo=kaggle&logoColor=white&style=flat-square"><img src="https://img.shields.io/badge/Kaggle-Competition-20BEFF?logo=kaggle&logoColor=white&style=flat-square" alt="Kaggle competition" /></a>
-  <a href="https://img.shields.io/badge/Award-Bronze%20%7C%20119%2F1608-CD7F32?style=flat-square"><img src="https://img.shields.io/badge/Award-Bronze%20%7C%20119%2F1608-CD7F32?style=flat-square" alt="Bronze medal, rank 119 of 1608" /></a>
-  <a href="https://img.shields.io/badge/Metric-RMSE-555555?style=flat-square"><img src="https://img.shields.io/badge/Metric-RMSE-555555?style=flat-square" alt="RMSE metric" /></a>
-  <a href="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white&style=flat-square"><img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white&style=flat-square" alt="Python 3.10" /></a>
-  <a href="https://img.shields.io/badge/Stack-CatBoost%20%7C%20LightGBM-2E8B57?style=flat-square"><img src="https://img.shields.io/badge/Stack-CatBoost%20%7C%20LightGBM-2E8B57?style=flat-square" alt="CatBoost and LightGBM" /></a>
-  <a href="https://img.shields.io/badge/License-Not%20specified-lightgrey?style=flat-square"><img src="https://img.shields.io/badge/License-Not%20specified-lightgrey?style=flat-square" alt="License not specified" /></a>
+  <a href="https://www.kaggle.com/competitions/um-game-playing-strength-of-mcts-variants"><img src="https://img.shields.io/badge/Kaggle-Competition-20BEFF?logo=kaggle&logoColor=white&style=flat-square" alt="Kaggle competition" /></a>
+  <a href="https://storage.googleapis.com/kaggle-competition-certificates/22972956/0fdb024a3bec2955d8d1962bd629da5f.png"><img src="https://img.shields.io/badge/Award-Bronze%20%7C%20119%2F1608-CD7F32?style=flat-square" alt="Bronze Medal, rank 119 of 1,608" /></a>
+  <img src="https://img.shields.io/badge/Metric-Local%20RMSE-555555?style=flat-square" alt="Local RMSE" />
+  <img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white&style=flat-square" alt="Python 3.10" />
+  <img src="https://img.shields.io/badge/Stack-CatBoost%20%7C%20LightGBM-2E8B57?style=flat-square" alt="CatBoost and LightGBM" />
+  <img src="https://img.shields.io/badge/License-Not%20specified-lightgrey?style=flat-square" alt="License not specified" />
 </p>
 
 <p align="center"><b>English</b> | <a href="./README_zh.md">简体中文</a></p>
@@ -15,130 +15,124 @@
   <a href="https://storage.googleapis.com/kaggle-competition-certificates/22972956/0fdb024a3bec2955d8d1962bd629da5f.png">
     <img src="assets/certificate.png" alt="Official Kaggle MCTS competition certificate" width="700" />
   </a>
-  <p><em>🏅 Official Kaggle Competition Award Certificate — Bronze Medal, 119th of 1,608 teams</em></p>
+  <p><em>🏅 Official Kaggle competition certificate — Bronze Medal, rank 119 of 1,608 teams</em></p>
 </div>
 
-## 1. Executive Summary
+## Overview
 
-This repository preserves the Kaggle submission notebook for **UM - Game-Playing Strength of MCTS Variants**. The solution is a two-branch tabular regression system for `utility_agent1`: a feature-rich GPU CatBoost branch and an OOF-aware CPU LightGBM/CatBoost branch. Both branches use `StratifiedGroupKFold` grouped by `GameRulesetName`, and their predictions are combined by the notebook's final weighted blend.
+This repository preserves the Kaggle submission notebook for **UM - Game-Playing Strength of MCTS Variants**. The task is a tabular regression problem: predict `utility_agent1` from game-rule, board, agent, performance, and outcome descriptors. The archived solution combines two deliberately different gradient-boosting branches and uses group-aware validation to reduce leakage across games that share the same ruleset.
 
-The tracked Notebook keeps its source cells and runtime metadata; generated cell outputs are intentionally stripped to keep the repository reviewable and avoid storing transient logs or plots.
+### Verified highlights
 
-### Problem and Core Challenges
+- **Feature-rich GPU branch:** structured ratios and interactions, agent parsing, rule-text statistics, fold-local TF-IDF, and two CatBoost GPU configurations.
+- **Selected-feature CPU branch:** Polars-based cleanup, a feature-selection manifest, LightGBM/CatBoost base models, and OOF-aware second-stage retraining.
+- **Leakage-aware validation:** five-fold `StratifiedGroupKFold`, stratified by `round(utility_agent1 * 15)` and grouped by `GameRulesetName`.
+- **Final blend:** the notebook combines the two branch predictions as `0.71 * branch_1 + 0.37 * branch_2`.
+- **Archived result:** private leaderboard score `0.43045`, Bronze Medal, rank `119 / 1,608`.
 
-- **Task:** predict the continuous target `utility_agent1` from game-rule, board, agent, performance, and outcome descriptors.
-- **Metric:** the notebook evaluates folds with RMSE and reports the same target-space metric in its local diagnostics.
-- **Generalization risk:** rows from the same `GameRulesetName` must not be mixed carelessly across validation folds.
-- **Feature heterogeneity:** the data combines numeric game statistics, categorical agent configurations, long rule strings, sparse one-hot columns, and high-cardinality metadata.
+The repository intentionally retains the notebook as the primary executable artifact. Generated model files, runtime outputs, and large Kaggle inputs are not committed.
 
-### Winning Approach Overview
-
-Branch 1 constructs interaction and ratio features, parses agent configurations, cleans `EnglishRules`/`LudRules`, and fits two GPU CatBoost regressors across five stratified group folds. Branch 2 removes null/constant/redundant columns, applies a precomputed feature-selection list, and trains five-fold LightGBM and CatBoost models. It then adds branch-level OOF predictions as features and retrains OOF-aware models. The final prediction is `0.71 * branch_1 + 0.37 * branch_2`.
-
-## 2. Solution Architecture and Pipeline
+## Solution Architecture
 
 ```mermaid
 graph TD
     A[train.csv / test.csv] --> B1[Branch 1: rich feature engineering]
-    A --> B2[Branch 2: Polars cleanup + selected features]
-    B1 --> C1[Agent indicators, ratios, one-hot\nrule parsing, memory reduction]
-    C1 --> D1[Per-fold TF-IDF for\nEnglishRules and LudRules]
-    D1 --> E1[CatBoost GPU x 2 configs\n5-fold StratifiedGroupKFold]
-    B2 --> C2[Drop null/constant/redundant columns\ncast categorical/numeric dtypes]
-    C2 --> D2[Feature list from importances.csv]
-    D2 --> E2[LightGBM + CatBoost\n5-fold StratifiedGroupKFold]
-    E2 --> F2[OOF predictions as new features]
-    F2 --> G2[LightGBM/CatBoost OOF-aware retraining]
-    E1 --> H[Branch prediction]
+    A --> B2[Branch 2: Polars cleanup and selected features]
+    B1 --> C1[Agent indicators, ratios, one-hot features, rule parsing]
+    C1 --> D1[Fold-local TF-IDF for EnglishRules and LudRules]
+    D1 --> E1[Two GPU CatBoost models<br/>5-fold StratifiedGroupKFold]
+    B2 --> C2[Drop null, constant and redundant columns]
+    C2 --> D2[Apply importances.csv feature manifest]
+    D2 --> E2[LightGBM and CatBoost<br/>5-fold StratifiedGroupKFold]
+    E2 --> F2[Create lgb_oof_preds and ctb_oof_preds]
+    F2 --> G2[OOF-aware second-stage retraining]
+    E1 --> H[Branch predictions]
     G2 --> H
     H --> I[0.71 * Branch 1 + 0.37 * Branch 2]
     I --> J[utility_agent1 submission]
 ```
 
-### Pipeline Stages
+## Technical Approach
 
-1. **Input and runtime mode:** the notebook reads Kaggle competition CSVs with Polars/Pandas. `KAGGLE_IS_COMPETITION_RERUN` switches off the short local settings.
-2. **Branch 1 preprocessing:** derives agent-position indicators, board-area and efficiency ratios, clips outliers, decomposes agent strings, adds selected one-hot features, parses `LudRules`, drops unstable/highly redundant columns, and downcasts memory.
-3. **Branch 1 text features:** cleans rule text, adds text length, and fits a separate `TfidfVectorizer(max_features=500, ngram_range=(2, 3))` inside each model/fold.
-4. **Branch 2 preprocessing:** removes identifiers, all-null columns, constant columns, explicit redundant text/count columns, and features listed in `importances.csv`; categorical columns are preserved as category/string types.
-5. **Training and inference:** both branches use grouped stratification on `round(utility_agent1 * 15)` and `GameRulesetName`, then average model predictions before the final blend.
+### 1. Validation strategy
 
-## 3. Key Technical Insights
+Both branches use five folds of `StratifiedGroupKFold`:
 
-### 3.1 Validation Strategy
+- `GameRulesetName` is the group key, preventing related rows from being distributed across folds without control.
+- `round(utility_agent1 * 15)` is used as the stratification proxy for the continuous target.
+- Branch 2 stores fold-level out-of-fold predictions and feeds them into its second-stage models.
+- `GroupKFold` is imported in the notebook but is not the splitter used by the final path.
 
-The implemented CV strategy is `StratifiedGroupKFold` with `GameRulesetName` as the group and `round(y * 15)` as the stratification proxy:
+This is the validation design implemented by the notebook; the archive does not include a separate leakage-audit report or a full CV-to-leaderboard experiment ledger.
 
-- **Branch 1:** `Preprocessor(num_folds=5, ...)` creates five folds; the constructor's default of ten is overridden by the actual call.
-- **Branch 2:** `CFG.n_splits = 5` creates five folds.
-- **OOF integrity:** branch 2 stores fold OOF predictions, appends them to the training table, and uses them to train the second-stage `LightGBM w/ OOF` and `CatBoost w/ OOF` models.
-- `GroupKFold` is imported but is not the splitter used by the final code path.
+### 2. Data preprocessing and feature engineering
 
-### 3.2 Data Preprocessing and Feature Engineering
+**Branch 1 (`model_1.Preprocessor.FE`)**
 
-**Branch 1 (`model_1.Preprocessor.FE`):**
+- Creates signed indicators for enumerated MCTS agent configurations.
+- Adds board-area, playout/move, efficiency, duration, complexity, timeout, outcome, and action-ratio interactions.
+- Clips `PlayoutsPerSecond` to `[0, 25,000]` and `MovesPerSecond` to `[0, 1,000,000]`.
+- Decomposes `agent1` and `agent2` into `selection`, `exploration_const`, `playout`, and `score_bounds` components.
+- Applies selected one-hot features, removes unstable or redundant columns, and downcasts numeric data for memory efficiency.
+- Cleans `EnglishRules` and `LudRules`, adds text-length features, and fits `TfidfVectorizer(max_features=500, ngram_range=(2, 3))` inside each model/fold.
 
-- creates signed indicators for enumerated MCTS agent configurations;
-- adds area, playout/move, efficiency, duration, complexity, timeout, outcome, and action-ratio interactions;
-- clips `PlayoutsPerSecond` to `[0, 25,000]` and `MovesPerSecond` to `[0, 1,000,000]`;
-- splits `agent1` and `agent2` into `selection`, `exploration_const`, `playout`, and `score_bounds` components;
-- one-hot encodes selected low-cardinality numeric and agent fields;
-- removes the game-name prefix from `LudRules`, extracts player/rule information, and drops a large explicit list of unstable or redundant columns;
-- applies memory reduction to numeric columns;
-- cleans `EnglishRules` and `LudRules`, adds text lengths, and creates fold-local TF-IDF features.
+**Branch 2 (`model_2.FE`)**
 
-**Branch 2 (`model_2.FE`):**
+- Reads the CSVs with Polars using `batch_size=65536`.
+- Removes `Id`, raw rule text, training-only win/draw/loss counts, all-null columns, and constant columns.
+- Casts `GameRulesetName`, `agent1`, and `agent2` to strings and reduces numeric columns to compact types where possible.
+- Applies `/kaggle/input/mcts-gbdt-select-200-features/importances.csv` as a drop-feature manifest.
 
-- reads data in Polars with `batch_size=65536`;
-- drops `Id`, raw rule text, training-only win/draw/loss counts, all-null columns, and columns with one unique value;
-- casts `GameRulesetName`, `agent1`, and `agent2` to string and numeric columns to `Int16` or `Float32` where possible;
-- applies `/kaggle/input/mcts-gbdt-select-200-features/importances.csv` as a drop-feature manifest.
+### 3. Model design and training configuration
 
-### 3.3 Model Design and Training Configuration
-
-| Branch | Model | Key parameters in the full submission mode |
+| Branch | Model | Full-run configuration preserved in the notebook |
 | --- | --- | --- |
-| 1 | CatBoost GPU `cat1` | 3,096 iterations, `learning_rate=0.08`, `depth=12`, `l2_leaf_reg=1.25`, `min_data_in_leaf=24`, `bagging_temperature=0.50`, `random_strength=0.25` |
-| 1 | CatBoost GPU `cat2` | Same core settings, `bagging_temperature=0.60`, `random_strength=0.20`, `max_bin=2048` |
-| 2 | LightGBM CPU | 20,000 iterations, `learning_rate=0.07`, `num_leaves=64`, `max_depth=24`, `extra_trees=True`, `reg_alpha=0.1`, `reg_lambda=0.8`, early stop 500 |
-| 2 | CatBoost CPU | 20,000 trees, `learning_rate=0.03`, `depth=8`, `reg_lambda=0.8`, early stop 500 |
+| 1 | CatBoost GPU `cat1` | 3,096 iterations, `learning_rate=0.08`, `depth=12`, `l2_leaf_reg=1.25`, `min_data_in_leaf=24` |
+| 1 | CatBoost GPU `cat2` | Same core settings, with alternate `bagging_temperature`, `random_strength`, and `max_bin=2048` |
+| 2 | LightGBM CPU | 20,000 iterations, `learning_rate=0.07`, `num_leaves=64`, `max_depth=24`, `extra_trees=True`, early stopping 500 |
+| 2 | CatBoost CPU | 20,000 trees, `learning_rate=0.03`, `depth=8`, `reg_lambda=0.8`, early stopping 500 |
 
-The notebook uses RMSE evaluation and early stopping. It does not define a custom loss, neural-network head, AMP, EMA, pseudo-labeling, or differentiable stacking layer.
+The notebook evaluates folds with RMSE and uses early stopping where configured. It does not define a custom neural loss, neural-network head, AMP block, EMA, pseudo-labeling stage, or differentiable stacking layer.
 
-### 3.4 Ensembling and Post-processing
+### 4. Ensembling and post-processing
 
 - Branch 1 averages predictions from two CatBoost configurations across five folds.
-- Branch 1 clips predictions after scaling by `1.1` to `[-0.985, 0.985]`.
-- Branch 2 first creates base LightGBM/CatBoost OOF predictions, appends them as `lgb_oof_preds` and `ctb_oof_preds`, and retrains OOF-aware models.
-- Branch 2 inference averages fold predictions and applies raw branch weights `0.80` for LightGBM and `0.30` for CatBoost.
-- The final submission uses the exact code coefficients `0.71` and `0.37`; they are intentionally documented as raw coefficients and are not renormalized in the notebook.
+- Branch 1 scales predictions by `1.1` and clips them to `[-0.985, 0.985]`.
+- Branch 2 creates base LightGBM/CatBoost OOF predictions, appends them as `lgb_oof_preds` and `ctb_oof_preds`, and retrains OOF-aware models.
+- Branch 2 averages fold predictions and applies raw branch weights `0.80` for LightGBM and `0.30` for CatBoost.
+- The final submission uses the notebook's exact raw coefficients: `0.71` for Branch 1 and `0.37` for Branch 2. They are not renormalized in the archived code.
 
-### 3.5 What Did Not Work / Open Ablations
+### 5. Experiment record boundary
 
-- `[TODO]` Compare grouped versus ungrouped CV with a leakage audit.
-- `[TODO]` Measure the contribution of rule-text TF-IDF independently from structured features.
-- `[TODO]` Record branch-level RMSE and final-blend RMSE in one experiment ledger.
-- `[TODO]` Test normalized versus raw final blend coefficients.
+The submitted notebook preserves the final modeling path, but not a complete public experiment ledger. Therefore, the following are documented as open analysis items rather than reported as completed results:
 
-## 4. Validation and Ablation Results
+- Separate contribution of rule-text TF-IDF versus structured features.
+- Grouped versus ungrouped CV under a leakage audit.
+- Branch-level RMSE and final-blend RMSE in one comparable table.
+- Normalized versus raw final blend coefficients.
 
-The archived evidence records a team result of **0.43045 private score and rank 119/1,608**. The Notebook's printed `0.43169` score is a separate local/notebook diagnostic and must not be conflated with the final team leaderboard record.
+## Results and Evidence
 
-| Stage / Experiment | Key Changes | Local CV | Public LB | Private LB |
-| :--- | :--- | :---: | :---: | :---: |
-| Baseline | Raw tabular model with grouped RMSE validation | `[TODO]` | `[TODO]` | `[TODO]` |
-| Branch 1 | Rich structural features + fold-local TF-IDF + CatBoost GPU | `[TODO]` | `[TODO]` | `[TODO]` |
-| Branch 2 | Selected features + LightGBM/CatBoost OOF-aware retraining | `[TODO]` | `[TODO]` | `[TODO]` |
-| Final submission | `0.71 * Branch 1 + 0.37 * Branch 2` | `[TODO]` | `[TODO]` | `0.43045 (archived team record)` |
+The archived evidence records a **private leaderboard score of `0.43045`**, Bronze Medal, and rank **119 / 1,608**. The notebook's printed `0.43169` is a separate local diagnostic and is not presented as the final leaderboard record.
 
-## 5. Repository Structure
+| Evidence item | Record |
+| --- | --- |
+| Award | Bronze Medal |
+| Final rank | 119 / 1,608 teams |
+| Private leaderboard score | `0.43045` |
+| Local notebook diagnostic | `0.43169`, not the final leaderboard record |
+| Official certificate | `evidence/goldmoreandmore-official-certificate.png` |
+
+Because the archived notebook does not contain a complete, comparable ablation table, unpublished baseline and intermediate scores are not inferred here.
+
+## Repository Structure
 
 ```text
 .
 ├── assets/
-│   └── certificate.png                         # README Hero certificate image
+│   └── certificate.png                         # README hero certificate image
 ├── evidence/
-│   ├── certificate_goldmoreandmore.json        # Current API certificate response
+│   ├── certificate_goldmoreandmore.json        # Certificate API response
 │   ├── certificate_goldmoreandmore.metadata.json
 │   ├── competition.json                        # Competition metadata
 │   ├── goldmoreandmore-official-certificate.png
@@ -150,31 +144,31 @@ The archived evidence records a team result of **0.43045 private score and rank 
 │   └── team_119.json                            # Rank-119 team record
 ├── submission/
 │   └── mcts-oof-predfe-pubnb-blending-lb-4xx-v4.ipynb
-│                                                  # Downloaded Kaggle Notebook
-├── README.md                                    # English technical documentation
-└── README_zh.md                                 # Simplified Chinese technical documentation
+│                                                  # Downloaded Kaggle notebook
+├── README.md                                    # English documentation
+└── README_zh.md                                 # Simplified Chinese documentation
 ```
 
-## 6. Environment and Reproducibility
+## Environment and Reproducibility
 
-### 6.1 Hardware and Runtime
+### Runtime
 
-- Notebook metadata declares a GPU runtime and Python 3.10.14.
-- Branch 1 requests CatBoost GPU; branch 2 explicitly uses CPU LightGBM/CatBoost.
+- Notebook metadata declares Python 3.10.14 and a GPU runtime.
+- Branch 1 requests CatBoost GPU; Branch 2 explicitly uses CPU LightGBM/CatBoost.
 - Local smoke mode uses `APP.small_iterations=True` and `APP.short_dataset=True`.
-- When `KAGGLE_IS_COMPETITION_RERUN` is set, the code switches to full iterations and the full dataset.
-- `[TODO: record exact GPU model, VRAM, wall-clock time, and full-run memory peak]`.
+- Setting `KAGGLE_IS_COMPETITION_RERUN` switches to the full-iteration and full-dataset path.
+- Exact GPU model, VRAM, wall-clock time, and peak memory were not preserved in the submitted notebook metadata.
 
-### 6.2 Installation
+### Installation and inputs
 
-No standalone `requirements.txt` is included. The Notebook imports:
+The repository has no standalone `requirements.txt`; the canonical execution environment is Kaggle. The notebook imports:
 
 ```text
 polars pandas numpy scikit-learn lightgbm catboost xgboost dill
 matplotlib plotly kaggle_evaluation
 ```
 
-The canonical environment is the Kaggle Notebook runtime with the competition input and the auxiliary dataset used by branch 2:
+The relevant Kaggle inputs are:
 
 ```text
 /kaggle/input/um-game-playing-strength-of-mcts-variants/train.csv
@@ -183,35 +177,32 @@ The canonical environment is the Kaggle Notebook runtime with the competition in
 /kaggle/input/mcts-gbdt-select-200-features/importances.csv
 ```
 
-### 6.3 Training and Inference Entry Points
+### Training and inference entry points
 
-The archive is a single Notebook, not a package with shell entry points. The actual execution path is:
+The archive is a single notebook rather than a package with shell entry points. The main execution path is:
 
 ```python
-# Local smoke mode defaults to True; full Kaggle reruns set these to False.
+# Switch off local smoke settings for a full rerun.
 APP.small_iterations = False
 APP.short_dataset = False
 
-# Branch 1: model_1.predict() trains once, then averages its saved fold models.
+# Branch 1: train five-fold CatBoost models and average fold predictions.
 model_1.preprocessor.train_model()
 
-# Branch 2: trains base LightGBM/CatBoost, adds OOF features,
-# then trains the OOF-aware LightGBM/CatBoost models.
+# Branch 2: train base models, add OOF features, then retrain OOF-aware models.
 model_2.train_model()
 
-# Final prediction path used by the notebook.
+# Generate the final utility_agent1 prediction.
 result = predict(test, submission)
 ```
 
-For official execution, the notebook registers `kaggle_evaluation.mcts_inference_server.MCTSInferenceServer(predict)` and uses `serve()` during a competition rerun or `run_local_gateway()` otherwise.
+For an official Kaggle rerun, the notebook registers `kaggle_evaluation.mcts_inference_server.MCTSInferenceServer(predict)` and uses `serve()`; local execution uses `run_local_gateway()`.
 
-### 6.4 Reproducibility Boundaries
-
-The notebook depends on Kaggle-mounted CSVs, the auxiliary feature-selection file, GPU CatBoost support for branch 1, and the official MCTS inference gateway. The repository intentionally excludes generated `.model`, `.npy`, and runtime output files.
+The archive depends on Kaggle-mounted CSVs, the auxiliary feature-selection file, GPU CatBoost support for Branch 1, and the official MCTS inference gateway. Generated `.model`, `.npy`, and runtime output files are intentionally excluded.
 
 ## Official Links
 
 - [Competition](https://www.kaggle.com/competitions/um-game-playing-strength-of-mcts-variants)
-- [Kaggle Notebook, script version 208056582](https://www.kaggle.com/code/goldmoreandmore/mcts-oof-predfe-pubnb-blending-lb-4xx?scriptVersionId=208056582)
+- [Kaggle notebook, script version 208056582](https://www.kaggle.com/code/goldmoreandmore/mcts-oof-predfe-pubnb-blending-lb-4xx?scriptVersionId=208056582)
 - [Official certificate page](https://www.kaggle.com/certification/competitions/goldmoreandmore/um-game-playing-strength-of-mcts-variants)
 - [Official certificate image](https://storage.googleapis.com/kaggle-competition-certificates/22972956/0fdb024a3bec2955d8d1962bd629da5f.png)

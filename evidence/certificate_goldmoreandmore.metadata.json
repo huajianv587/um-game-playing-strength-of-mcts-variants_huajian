@@ -1,0 +1,12 @@
+{
+  "url": "https://www.kaggle.com/api/i/competitions.CompetitionService/GetCompetitionCertificate",
+  "method": "POST",
+  "body": {
+    "userName": "goldmoreandmore",
+    "competitionName": "um-game-playing-strength-of-mcts-variants"
+  },
+  "http_status": 200,
+  "retrieved_utc": "2026-10-14T01:46:09.928973+00:00",
+  "bytes": 399,
+  "sha256": "2c9606ad8c598b10ae2920d64b36da3d881dd3eac265f0913e8cc9903a3d526f"
+}
